@@ -1,10 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/esnunes/tag-wizard/pkg/g"
 	"github.com/esnunes/tag-wizard/pkg/tagger"
 )
 
@@ -18,7 +21,7 @@ func main() {
 		&tagger.FileExtensionTagger{},
 	}
 
-	totalTags := []string{}
+	totalTags := map[string]struct{}{}
 
 	walk := func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -29,8 +32,11 @@ func main() {
 			if err != nil {
 				return err
 			}
-			if tags != nil {
-				totalTags = append(totalTags, tags...)
+			if tags == nil {
+				continue
+			}
+			for _, v := range tags {
+				totalTags[v] = struct{}{}
 			}
 		}
 		return nil
@@ -40,5 +46,5 @@ func main() {
 		log.Fatalf("failed to walk through files in %v: %v", wd, err)
 	}
 
-	log.Printf("tags: %v", totalTags)
+	fmt.Println(strings.Join(g.Keys(totalTags), " "))
 }
