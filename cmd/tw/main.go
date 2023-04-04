@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
+	"sort"
 	"strings"
+
+	"github.com/boyter/gocodewalker"
 
 	"github.com/esnunes/tag-wizard/pkg/g"
 	"github.com/esnunes/tag-wizard/pkg/tagger"
@@ -21,16 +23,36 @@ func main() {
 		&tagger.FileExtensionTagger{},
 	}
 
+	queue := make(chan *gocodewalker.File, 1_000)
+	walker := gocodewalker.NewFileWalker(wd, queue)
+	walker.SetErrorHandler(func(e error) bool {
+		log.Printf("failed to read file: %v", e.Error())
+		return true
+	})
+
+	go func() {
+		if err := walker.Start(); err != nil {
+			log.Printf("failed to walk through files: %v", err)
+		}
+	}()
+
 	totalTags := map[string]struct{}{}
 
-	walk := func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
+	for f := range queue {
 		for _, tagger := range taggers {
-			tags, err := tagger.Tag(path, info)
+			file, err := os.Open(f.Location)
 			if err != nil {
-				return err
+				log.Fatalf("failed to open file %v: %v", f.Location, err)
+			}
+
+			info, err := file.Stat()
+			if err != nil {
+				log.Fatalf("failed to load file stats for %v: %v", f.Location, err)
+			}
+
+			tags, err := tagger.Tag(f.Location, info)
+			if err != nil {
+				log.Fatalf("failed to tag file %v: %v", f.Location, err)
 			}
 			if tags == nil {
 				continue
@@ -39,12 +61,8 @@ func main() {
 				totalTags[v] = struct{}{}
 			}
 		}
-		return nil
 	}
-
-	if err = filepath.Walk(wd, walk); err != nil {
-		log.Fatalf("failed to walk through files in %v: %v", wd, err)
-	}
-
-	fmt.Println(strings.Join(g.Keys(totalTags), " "))
+	tags := g.Keys(totalTags)
+	sort.Strings(tags)
+	fmt.Println(strings.Join(tags, " "))
 }

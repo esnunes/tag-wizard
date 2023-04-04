@@ -1,0 +1,4 @@
+github.com/boyter/gocodewalker v1.1.0 h1:R/BOXRB5WcE5x/Q6Ln95GUQOQE4PAk86nq6WccZqZmM=
+github.com/boyter/gocodewalker v1.1.0/go.mod h1:CppTdM9RtednxKPcit+Zn36FXqwYaDIGufs/tenbswo=
+github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964 h1:y5HC9v93H5EPKqaS1UYVg1uYah5Xf51mBfIoWehClUQ=
+github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964/go.mod h1:Xd9hchkHSWYkEqJwUGisez3G1QY8Ryz0sdWrLPMGjLk=
